@@ -48,6 +48,9 @@ set(LAB1_MNIST lab1-mnist)
 
 include_directories("${ANN_INCLUDE}")
 
+# Enables 'test' target
+enable_testing()
+
 # BUILD:
 # - lab1-mnist
 add_subdirectory("code/lab1-mnist/src")
