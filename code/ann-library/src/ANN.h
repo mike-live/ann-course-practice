@@ -30,33 +30,56 @@ public:
 	void set_learning_rate(double learning_rate_) { learning_rate = learning_rate_; }
 	double get_learning_rate() { return learning_rate; }
 
-	vector <double> compute(vector <double> input) {
+	vector <double> compute(const vector <double> & input_) {
+		input = input_;
 		if (input.size() != n) throw std::length_error("Input hasn't length as number neurons of input layer");
-		vector <double> layer = mult(input, weights_first_layer);
-		layer = mult(layer, weights_second_layer);
-		double sum = 0;
+		mult(input, weights_first_layer, layer);
 		for (auto & q : layer) {
-			q = exp(q);
-			sum +=q;
+			q = tanh(q);
 		}
-		for (auto & q : layer) {
+		mult(layer, weights_second_layer, output);
+		double sum = 0.0;
+		for (auto & q : output) {
+			q = exp(q);
+			sum += q;
+		}
+		for (auto & q : output) {
 			q /= sum;
 		}
-		return layer;
+		return output;
+	}
+
+	void train(const vector <double> & target)
+	{
+		compute_gradients(target);
+		update_weights(target);
+	}
+
+	double compute_error(const vector<double> & target)
+	{
+		double err = 0;
+		for (size_t i = 0; i < target.size(); i++) {
+			err += target[i] * log(output[i]) + (1 - target[i]) * log(1 - output[i]);
+		}
+		return -err;
 	}
     
 private:
 	size_t n = 100, s = 50, k = 10;
 	double learning_rate = 1.0;
 	vector <double> weights_first_layer, weights_second_layer;
+	vector <double> input, layer, output;
+	vector <double> layer_gradients, output_gradients;
 
-	vector <double> mult(const vector <double> & x, const vector <double> & A)
+	void mult(const vector <double> & x, const vector <double> & A, vector <double> & y)
 	{
-		vector <double> y(A.size() / x.size());
+		y.resize(A.size() / x.size());
+		for (size_t i = 0; i < y.size(); i++) {
+			y[i] = 0;
+		}
 		for (size_t i = 0; i < A.size(); i++) {
 			y[i / x.size()] += A[i] * x[i % x.size()];
 		}
-		return y;
 	}
 
 	void init_weights(INIT init, double sigma = 1.0)
@@ -103,4 +126,38 @@ private:
 				break;
 		}
 	}
+
+	void compute_gradients(const vector<double> & target)
+	{
+		output_gradients.resize(k, 0);
+		for (size_t i = 0; i < k; i++) {
+			output_gradients[i] = target[i] - output[i];
+		}
+		layer_gradients.resize(s, 0);
+		for (size_t i = 0; i < s; i++) {
+			double derivative = (1 - layer[i]) * (1 + layer[i]);
+			double sum = 0.0;
+			for (size_t j = 0; j < k; j++) {
+				sum += layer_gradients[j] * weights_second_layer[i * k + j];
+			}
+			layer_gradients[i] = derivative * sum;
+		}
+	}
+
+	void update_weights(const vector<double> & target)
+	{
+		for (size_t j = 0; j < s; j++) {
+			for (size_t i = 0; i < n; i++) {
+				double delta = learning_rate * layer_gradients[j] * input[i];
+				weights_first_layer[j * n + i] += delta;
+			}
+		}
+		for (size_t j = 0; j < k; j++) {
+			for (size_t i = 0; i < s; i++) {
+				double delta = learning_rate * output_gradients[j] * layer[i];
+				weights_second_layer[j * s + i] += delta;
+			}
+		}	
+	}
+
 };
