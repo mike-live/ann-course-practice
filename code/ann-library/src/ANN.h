@@ -22,8 +22,7 @@ public:
 	}
 
 	ANN(size_t n, size_t s, size_t k, INIT init, double sigma) 
-		: n(n), s(s), k(k), weights_first_layer(weights_first_layer), 
-		weights_second_layer(weights_second_layer) { 
+		: n(n), s(s), k(k) { 
 		init_weights(init, sigma);	
 	}
 
@@ -63,6 +62,16 @@ public:
 		}
 		return -err;
 	}
+
+	bool check(const vector <double> & target)
+	{
+		double p = 0.0;
+		size_t id = -1;
+		for (size_t i = 0; i < output.size(); i++) {
+			if (p < output[i]) p = output[i], id = i;
+		}
+		return target[id] > 0.5;
+	}
     
 private:
 	size_t n = 100, s = 50, k = 10;
@@ -93,6 +102,7 @@ private:
 
 		std::random_device rd;
 		std::mt19937 gen(rd());
+		gen.seed(0);
 
 		switch (init) {
 			case INIT::ZERO:
