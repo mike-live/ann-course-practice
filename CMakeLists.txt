@@ -60,3 +60,15 @@ add_subdirectory("code/ann-library/src")
 
 # - tests
 add_subdirectory("code/ann-library/tests")
+
+# DATA FILES
+
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/download")
+file(DOWNLOAD http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz "${CMAKE_BINARY_DIR}/download/train-images-idx3-ubyte.gz"
+	 SHOW_PROGRESS)
+file(DOWNLOAD http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz "${CMAKE_BINARY_DIR}/download/train-labels-idx1-ubyte.gz"
+	 SHOW_PROGRESS)
+file(DOWNLOAD http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz "${CMAKE_BINARY_DIR}/download/t10k-images-idx3-ubyte.gz"
+	 SHOW_PROGRESS)
+file(DOWNLOAD http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz "${CMAKE_BINARY_DIR}/download/t10k-labels-idx1-ubyte.gz"
+	 SHOW_PROGRESS)
