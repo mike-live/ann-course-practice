@@ -44,7 +44,7 @@ namespace std {
 class {
 public:
 	size_t num_epoch = 20, num_hidden_layers = 300;
-	double learning_rate = 0.008;
+	double learning_rate = 0.008, sigma = 0.0001;
 	size_t width, height, num_labels = 10;
 	vector <pair <vector <double>, vector <double>>> train_data;
 	vector <pair <vector <double>, vector <double>>> test_data;
@@ -65,9 +65,23 @@ public:
 			string arg = string(argv[i]);
 			size_t pos = arg.find('=');
 			if (pos != string::npos) {
-				arg.substr(0, pos);
+				string name = (arg.substr(0, pos));
+				string param = arg.substr(pos + 1);
+				if ((name).size() > 2 && name == string("learning_rate").substr(0, (name).size())) {
+					learning_rate = stod(param);
+				} else 
+				if ((name).size() > 2 && name == string("num_epoch").substr(0, (name).size())) {
+					num_epoch = stol(param);
+				} else 
+				if ((name).size() > 2 && name == string("num_hidden_layers").substr(0, (name).size())) {
+					num_hidden_layers = stol(param);
+				} else 
+				if ((name).size() > 2 && name == string("sigma").substr(0, (name).size())) {
+					sigma = stod(param);
+				} else {}
 			}
 		}
+		cout << learning_rate << endl;
 		read();
 	}
 	
@@ -95,8 +109,10 @@ public:
 
 	void read_dataset(string path_images, string path_labels, vector <pair <vector <double>, vector <double>>> & data)
 	{
+		cout << "Path to labels: " << path_labels << endl;
+		cout << "Path to images: " << path_images << endl;
+
 		FILE * bu = fopen(path_labels.c_str(), "rb");
-		cout << path_labels << endl;
 		file_labels fl;
 		fread (&fl, sizeof(fl), 1, bu);
 		fl.swap_endian();
@@ -123,18 +139,22 @@ public:
 		}
 		width = fi.width;
 		height = fi.height;
-		cout << (data).size() << " " << data[0].first.size() << " " << data[0].second.size() << endl;
+
+		cout << "Size: " << (data).size() << " Width: " << width << " Height: " << height << endl;
 	}
 
 	void read()
 	{
+		cout << "MNIST." << endl;
+		cout << "Train data set:" << endl;
 		read_dataset(path_data + "train-images.idx3-ubyte", path_data + "train-labels.idx1-ubyte", train_data);
+		cout << "Test data set:" << endl;
 		read_dataset(path_data + "t10k-images.idx3-ubyte", path_data + "t10k-labels.idx1-ubyte", test_data);
 	}
 	
 	void calc()
 	{
-		ANN ann_mnist(width * height, num_hidden_layers, num_labels, ANN::INIT::GAUSS, 0.0001);
+		ANN ann_mnist(width * height, num_hidden_layers, num_labels, ANN::INIT::GAUSS, sigma);
 		ann_mnist.set_learning_rate(learning_rate);
 		clock_t be_calc = clock();
 		vector <size_t> train_permutation(train_data.size());
