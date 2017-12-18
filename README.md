@@ -7,16 +7,16 @@ MNIST DATASET: http://yann.lecun.com/exdb/mnist/
 
 #### CMAKE to create solution and download MNIST data (about 12 MB):
 
-md ..\ann-course-practice-build
-cd ..\ann-course-practice-build
-cmake ..\ann-course-practice
+`md ..\ann-course-practice-build`
+`cd ..\ann-course-practice-build`
+`cmake ..\ann-course-practice`
 
-Next unzip archives: ..\ann-course-practice-build\download\*.gz
+Next unzip archives: `..\ann-course-practice-build\download\*.gz`
 
 #### Build solution:
 
-call "%VS140COMNTOOLS%\VsDevCmd.bat"
-msbuild ..\ann-course-practice-build\ann-course-practice.sln /property:Configuration=Release
+`call "%VS140COMNTOOLS%\VsDevCmd.bat"`
+`msbuild ..\ann-course-practice-build\ann-course-practice.sln /property:Configuration=Release`
 
 ### Run:
 
