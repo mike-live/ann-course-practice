@@ -44,23 +44,16 @@ namespace std {
 class {
 public:
 	size_t num_epoch = 20, num_hidden_layers = 300;
-	double learning_rate = 0.008, sigma = 0.0001;
+	double learning_rate = 0.008, sigma = 0.01;
 	size_t width, height, num_labels = 10;
 	vector <pair <vector <double>, vector <double>>> train_data;
 	vector <pair <vector <double>, vector <double>>> test_data;
 	string bin_path;
 //	string path_data = "../../../../download/";
 	string path_data = "../download/";
+	bool is_relative_path = true;
+
 	void init(int argc, char ** argv) {
-		bin_path = argv[0];
-		cout << bin_path << endl;
-		size_t pos1 = bin_path.find_last_of('/'), pos2 = bin_path.find_last_of('\\');
-		size_t pos = pos1 == string::npos ? pos2 : (pos2 == string::npos ? pos1 : max(pos1, pos2));
-		if (pos != string::npos) {
-			bin_path = bin_path.substr(0, pos);
-		}
-		cout << bin_path << endl;
-		path_data = bin_path + "/" + path_data;
 		for (int i = 0; i < argc; i++) {
 			string arg = string(argv[i]);
 			size_t pos = arg.find('=');
@@ -78,10 +71,26 @@ public:
 				} else 
 				if ((name).size() > 2 && name == string("sigma").substr(0, (name).size())) {
 					sigma = stod(param);
+				} else
+				if ((name).size() > 2 && name == string("images_relative_dir").substr(0, (name).size())) {
+					path_data = param;
+					is_relative_path = true;
+				} else
+				if ((name).size() > 2 && name == string("images_dir").substr(0, (name).size())) {
+					path_data = param;
+					is_relative_path = false;
 				} else {}
 			}
 		}
-		cout << learning_rate << endl;
+		if (is_relative_path) {
+			bin_path = argv[0];
+			size_t pos1 = bin_path.find_last_of('/'), pos2 = bin_path.find_last_of('\\');
+			size_t pos = pos1 == string::npos ? pos2 : (pos2 == string::npos ? pos1 : max(pos1, pos2));
+			if (pos != string::npos) {
+				bin_path = bin_path.substr(0, pos);
+			}
+			path_data = bin_path + "/" + path_data;
+		}
 		read();
 	}
 	
@@ -132,7 +141,7 @@ public:
 		for (size_t i = 0; i < data.size(); i++) {
 			vector <double> label (num_labels, 0.0), image(fi.width * fi.height);
 			for (size_t j = 0; j < image.size(); j++) {
-				image[j] = images[i * image.size() + j];
+				image[j] = images[i * image.size() + j] / 255.0;
 			}
 			label[labels[i]] = 1.0;
 			data[i] = {image, label};
@@ -169,22 +178,38 @@ public:
 			std::shuffle(train_permutation.begin(), train_permutation.end(), gen);
 			for (auto id : train_permutation) {
 				auto & data = train_data[id];
+/*				printf("%d\n", id);
+				for (int i = 0; i < width; i++) {
+					for (int j = 0; j < height; j++) {
+						printf("%d ", data.first[i * height + j] > 0);
+					}
+					printf("\n");
+				}*/
 				ann_mnist.compute(data.first);
 				ann_mnist.train(data.second);
+//				ann_mnist.compute(data.first);
 			}
-			double accuracy = 0.0;
+			double accuracy_train = 0.0;
+			for (auto data : train_data) {
+				ann_mnist.compute(data.first);
+				accuracy_train += ann_mnist.check(data.second);
+			}	
+			accuracy_train /= train_data.size();
+			double accuracy_test = 0.0;
 			for (auto data : test_data) {
 				ann_mnist.compute(data.first);
-				accuracy += ann_mnist.check(data.second);
+				accuracy_test += ann_mnist.check(data.second);
 			}	
-			accuracy /= test_data.size();
-			log_to_file(cout, epoch, accuracy, clock() - be_epoch, clock() - be_calc);
+			accuracy_test /= test_data.size();
+			log_to_file(cout, epoch, accuracy_test, accuracy_train, clock() - be_epoch, clock() - be_calc);
 		}
 	}
 
-	void log_to_file(ostream & fout, size_t epoch, double accuracy, clock_t epoch_time, clock_t time_all)
+	void log_to_file(ostream & fout, size_t epoch, double accuracy_test, double accuracy_train, clock_t epoch_time, clock_t time_all)
 	{
-		fout << "Epoch: " << epoch << " Test accuracy: " << accuracy << " ";
+		fout << "Epoch: " << epoch << " ";
+		fout << "Test accuracy: " << accuracy_test << " ";
+		fout << "Train accuracy: " << accuracy_train << " ";
 		fout << "Calculation epoch time: " << epoch_time / CLOCKS_PER_SEC << " sec. ";
 		fout << "All calculation time: " << time_all / CLOCKS_PER_SEC << " sec." << endl;
 	}
