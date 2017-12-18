@@ -3,8 +3,10 @@
 #include <vector>
 #include <stdexcept>
 #include <random>
+#include <algorithm>
 
 using std::vector;
+using std::max;
 
 class ANN
 {
@@ -32,15 +34,21 @@ public:
 	vector <double> compute(const vector <double> & input_) {
 		input = input_;
 		if (input.size() != n) throw std::length_error("Input hasn't length as number neurons of input layer");
+		layer = biases_first_layer;
 		mult(input, weights_first_layer, layer);
 		for (auto & q : layer) {
 			q = tanh(q);
 		}
+		output = biases_second_layer;
 		mult(layer, weights_second_layer, output);
-		double sum = 0.0;
+		double sum = 0.0, mx = output[0];
+
 		for (auto & q : output) {
-			q = exp(q);
-			sum += q;
+			mx = max(q, mx);
+		}
+		for (auto & q : output) {
+			q = exp(q - mx);
+			sum += q;	
 		}
 		for (auto & q : output) {
 			q /= sum;
@@ -79,15 +87,15 @@ private:
 	vector <double> weights_first_layer, weights_second_layer;
 	vector <double> input, layer, output;
 	vector <double> layer_gradients, output_gradients;
+	vector <double> biases_first_layer, biases_second_layer;
 
 	void mult(const vector <double> & x, const vector <double> & A, vector <double> & y)
 	{
-		y.resize(A.size() / x.size());
-		for (size_t i = 0; i < y.size(); i++) {
-			y[i] = 0;
-		}
-		for (size_t i = 0; i < A.size(); i++) {
-			y[i / x.size()] += A[i] * x[i % x.size()];
+		y.resize(A.size() / x.size(), 0);
+		for (size_t j = 0; j < y.size(); j++) {
+			for (size_t i = 0; i < x.size(); i++) {
+				y[j] += A[j * x.size() + i] * x[i];
+			}
 		}
 	}
 
@@ -96,26 +104,33 @@ private:
 		if (init != INIT::WEIGHTS) {
 			weights_first_layer.resize(n * s, 0);
 			weights_second_layer.resize(s * k, 0);
+			biases_first_layer.resize(s, 0);
+			biases_second_layer.resize(k, 0);
 		}
 		if (weights_first_layer.size() != n * s) throw std::length_error("First layer hasn't length as number neurons pairs between first and second layers");
 		if (weights_second_layer.size() != s * k) throw std::length_error("Second layer hasn't length as number neurons pairs between second and third layers");
 
 		std::random_device rd;
 		std::mt19937 gen(rd());
-		gen.seed(0);
+//		gen.seed(0);
 
 		switch (init) {
 			case INIT::ZERO:
 				break;
 			case INIT::UNIFORM: 
 			{
-
-				std::uniform_real_distribution<double> distr_uniform(0, 1);
+				std::uniform_real_distribution<double> distr_uniform(0, sigma);
 				for (auto & weight : weights_first_layer) {
 					weight = distr_uniform(gen);
 				}
 				for (auto & weight : weights_second_layer) {
 					weight = distr_uniform(gen);
+				}
+				for (auto & bias : biases_first_layer) {
+					bias = distr_uniform(gen);				
+				}
+				for (auto & bias : biases_second_layer) {
+					bias = distr_uniform(gen);				
 				}
 				break;
 			}
@@ -127,6 +142,12 @@ private:
 				}
 				for (auto & weight : weights_second_layer) {
 					weight = distr_gauss(gen);
+				}
+				for (auto & bias : biases_first_layer) {
+					bias = distr_gauss(gen);				
+				}
+				for (auto & bias : biases_second_layer) {
+					bias = distr_gauss(gen);				
 				}
 				break;
 			}
@@ -141,14 +162,14 @@ private:
 	{
 		output_gradients.resize(k, 0);
 		for (size_t i = 0; i < k; i++) {
-			output_gradients[i] = target[i] - output[i];
+			output_gradients[i] = (output[i] - target[i]);
 		}
 		layer_gradients.resize(s, 0);
 		for (size_t i = 0; i < s; i++) {
 			double derivative = (1 - layer[i]) * (1 + layer[i]);
 			double sum = 0.0;
 			for (size_t j = 0; j < k; j++) {
-				sum += layer_gradients[j] * weights_second_layer[i * k + j];
+				sum += output_gradients[j] * weights_second_layer[j * s + i];
 			}
 			layer_gradients[i] = derivative * sum;
 		}
@@ -159,15 +180,23 @@ private:
 		for (size_t j = 0; j < s; j++) {
 			for (size_t i = 0; i < n; i++) {
 				double delta = learning_rate * layer_gradients[j] * input[i];
-				weights_first_layer[j * n + i] += delta;
+				weights_first_layer[j * n + i] -= delta;
 			}
 		}
 		for (size_t j = 0; j < k; j++) {
 			for (size_t i = 0; i < s; i++) {
 				double delta = learning_rate * output_gradients[j] * layer[i];
-				weights_second_layer[j * s + i] += delta;
+				weights_second_layer[j * s + i] -= delta;
 			}
-		}	
+		}
+		for (size_t i = 0; i < s; i++) {
+			double delta = learning_rate * layer_gradients[i] * 1.0;
+			biases_first_layer[i] -= delta;
+		}
+		for (size_t i = 0; i < k; i++) {
+			double delta = learning_rate * output_gradients[i] * 1.0;
+			biases_second_layer[i] -= delta;
+		}
 	}
 
 };
