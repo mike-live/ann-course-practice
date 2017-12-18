@@ -18,6 +18,8 @@ Next unzip archives: ..\ann-course-practice-build\download\*.gz
 call "%VS140COMNTOOLS%\VsDevCmd.bat"
 msbuild ..\ann-course-practice-build\ann-course-practice.sln /property:Configuration=Release
 
+### Run:
+
 #### CMD line params:
 1: images_relative_dir - relative path to directory with MNIST dataset (relative to dir with executable file) (default = ../download)
 1: images_dir - absolute path to directory with MNIST dataset
@@ -29,6 +31,6 @@ msbuild ..\ann-course-practice-build\ann-course-practice.sln /property:Configura
 #### Example:
 lab1-mnist sigma=0.01 learn=0.01 
 
-#### Accuracy with default params:  
+### Accuracy after 20 epochs with default params:  
 Train: 0.999917
 Test: 0.9808
