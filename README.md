@@ -13,7 +13,7 @@ cd ..\ann-course-practice-build
 cmake ..\ann-course-practice
 ```
 
-Next unzip archives: `..\ann-course-practice-build\download\*.gz`
+Next manually unzip archives: `..\ann-course-practice-build\download\*.gz`
 
 #### Build solution:
 
