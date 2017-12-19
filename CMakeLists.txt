@@ -37,7 +37,8 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ENVIROMENT:
 
@@ -63,12 +64,21 @@ add_subdirectory("code/ann-library/tests")
 
 # DATA FILES
 
+
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/download")
-file(DOWNLOAD http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz "${CMAKE_BINARY_DIR}/download/train-images-idx3-ubyte.gz"
-	 SHOW_PROGRESS)
-file(DOWNLOAD http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz "${CMAKE_BINARY_DIR}/download/train-labels-idx1-ubyte.gz"
-	 SHOW_PROGRESS)
-file(DOWNLOAD http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz "${CMAKE_BINARY_DIR}/download/t10k-images-idx3-ubyte.gz"
-	 SHOW_PROGRESS)
-file(DOWNLOAD http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz "${CMAKE_BINARY_DIR}/download/t10k-labels-idx1-ubyte.gz"
-	 SHOW_PROGRESS)
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/download/train-images-idx3-ubyte.gz")
+	file(DOWNLOAD http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz "${CMAKE_BINARY_DIR}/download/train-images-idx3-ubyte.gz"
+		 SHOW_PROGRESS)
+endif()
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/download/train-labels-idx1-ubyte.gz")
+	file(DOWNLOAD http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz "${CMAKE_BINARY_DIR}/download/train-labels-idx1-ubyte.gz"
+		 SHOW_PROGRESS)
+endif()
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/download/t10k-images-idx3-ubyte.gz")
+	file(DOWNLOAD http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz "${CMAKE_BINARY_DIR}/download/t10k-images-idx3-ubyte.gz"
+		 SHOW_PROGRESS)
+endif()
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/download/t10k-labels-idx1-ubyte.gz")
+	file(DOWNLOAD http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz "${CMAKE_BINARY_DIR}/download/t10k-labels-idx1-ubyte.gz"
+		 SHOW_PROGRESS)
+endif()

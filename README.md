@@ -8,9 +8,9 @@ MNIST DATASET: http://yann.lecun.com/exdb/mnist/
 #### CMAKE to create solution and download MNIST data (about 12 MB):
 
 ```
-md ..\ann-course-practice-build
-cd ..\ann-course-practice-build
-cmake ..\ann-course-practice
+mkdir build
+cd build
+cmake --config Release ..
 ```
 
 Next manually unzip archives: `..\ann-course-practice-build\download\*.gz`
@@ -18,11 +18,20 @@ Next manually unzip archives: `..\ann-course-practice-build\download\*.gz`
 #### Build solution:
 
 ```
-call "%VS140COMNTOOLS%\VsDevCmd.bat"
-msbuild ..\ann-course-practice-build\ann-course-practice.sln /property:Configuration=Release
+cd build
+cmake --build . --config Release
 ```
 
 ### Run:
+
+#### Tests:
+```
+cd build
+cmake --build . --target RUN_TESTS --config Release
+```
+
+#### Train neural network on MNIST data
+Path to executable: `build/bin/lab1-mnist`
 
 #### CMD line params:
 1. `images_relative_dir` - relative path to directory with MNIST dataset (relative to dir with executable file) (default = ../download)
@@ -36,5 +45,5 @@ msbuild ..\ann-course-practice-build\ann-course-practice.sln /property:Configura
 `lab1-mnist sigma=0.01 learn=0.01`
 
 ### Accuracy after 20 epochs with default params:  
-Train: 0.999917
+Train: 0.999917  
 Test: 0.9808

@@ -11,10 +11,10 @@ language: cpp
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake --config Release ..
 
 script:
-  - cmake --build .
+  - cmake --build . --config Release
 
 after_script:
-  - cmake --build . --target test
+  - cmake --build . --target test --config Release
